@@ -137,7 +137,7 @@ st.markdown('<p class="sub-title">국어, 영어, 수학, 사회, 과학 등 모
 
 st.markdown("""
     <div class="warning-banner">
-        <p class="warning-text">🚨 공지사항: AI 사용료가 비싸 후원이 없으면 서비스가 중단될 수 있습니다!<br>유용하게 쓰셨다면 자발적인 이용료 후원을 부탁드립니다.</p>
+        <p class="warning-text">🚨 공지사항: AI 사용료가 비싸 사용료지급이 없으면 서비스가 중단될 수 있습니다!<br>유용하게 쓰셨다면 자발적인 이용료 지급을 부탁드립니다.</p>
     </div>
 """, unsafe_allow_html=True)
 
@@ -451,10 +451,10 @@ col_foot1, col_foot2 = st.columns([2, 1])
 with col_foot1:
     st.markdown("<p style='color: #64748B; font-size: 0.85rem;'></p>", unsafe_allow_html=True)
 with col_foot2:
-    @st.dialog("☕ 개발자에게 커피 사주기")
+    @st.dialog("☕ 사용료지급하기")
     def donate_dialog():
         st.markdown("""
-            <p style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>서비스를 유용하게 쓰셨나요?<br>자발적인 후원은 더 좋은 기능을 만드는 데 큰 힘이 됩니다!</p>
+            <p style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>서비스를 유용하게 쓰셨나요?<br>한달사용료2000원지급은 좋은 기능을 만드는 데 큰 힘이 됩니다!</p>
             <div style='background-color: #0F172A; padding: 20px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1rem;'>
                 <p style='color: #38BDF8; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px;'>토스뱅크 1002-6694-4531</p>
             </div>
