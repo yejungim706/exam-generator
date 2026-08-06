@@ -9,7 +9,6 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 import os
 import tempfile
 import time
-import uuid
 
 st.set_page_config(
     page_title="AI 전 과목 시험지 & 답안지 생성기",
@@ -26,9 +25,8 @@ client = OpenAI(
     api_key=API_KEY,
 )
 
-# 세션 상태 초기화
 if "users_db" not in st.session_state:
-    st.session_state.users_db = {}  # {username: password}
+    st.session_state.users_db = {}
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "is_subscribed" not in st.session_state:
@@ -132,7 +130,6 @@ try:
 except:
     FONT_NAME = 'Helvetica'
 
-# 로그인 및 회원가입 화면
 if not st.session_state.logged_in:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.5, 1])
@@ -172,7 +169,6 @@ if not st.session_state.logged_in:
             st.markdown("<h3 style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>회원가입</h3>", unsafe_allow_html=True)
             signup_id = st.text_input("사용할 아이디", key="signup_id")
             
-            # 아이디 중복 확인 버튼 및 로직
             if st.button("중복 확인", key="check_dup_btn"):
                 if not signup_id.strip():
                     st.warning("아이디를 입력해주세요.")
@@ -204,75 +200,31 @@ if not st.session_state.logged_in:
                     
         st.markdown("</div>", unsafe_allow_html=True)
 
-# 구독 결제 화면 (토스페이먼츠 연동 포함)
 elif not st.session_state.is_subscribed:
     st.markdown("<br><br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
         st.markdown(f"""
             <div class="login-card">
-                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 프리미엄 구독 결제</h2>
-                <p style="color: #94A3B8; text-align: center; margin-bottom: 1.5rem;">환영합니다, <b>{st.session_state.username}</b>님!<br>모든 기능을 무제한 이용하려면 월 2,000원 구독이 필요합니다.</p>
+                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 프리미엄 이용 안내</h2>
+                <p style="color: #94A3B8; text-align: center; margin-bottom: 1.5rem;">환영합니다, <b>{st.session_state.username}</b>님!<br>양심적으로 1달 이용료 2,000원을 아래 계좌로 송금해주세요.</p>
+                <div style="background-color: #0F172A; padding: 15px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1.5rem;">
+                    <p style="color: #38BDF8; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px;">토스뱅크 1002-6694-4531</p>
+                    <p style="color: #94A3B8; font-size: 0.9rem;">예금주: yejun</p>
+                </div>
         """, unsafe_allow_html=True)
         
-        # 토스페이먼츠 SDK 연동 HTML 컴포넌트 삽입
-        order_id = f"ORDER_{uuid.uuid4().hex[:10]}"
-        toss_client_key = st.secrets.get("TOSS_CLIENT_KEY", "test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq") # 테스트용 기본 키 제공
-        
-        toss_html = f"""
-        <div style="background-color: #0F172A; padding: 15px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
-            <p style="color: #F8FAFC; font-weight: 600; margin-bottom: 10px;">토스페이먼츠 안전 결제 (월 2,000원)</p>
-            <button id="payment-button" style="background-color: #3182F6; color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">토스로 결제하기</button>
-        </div>
-        
-        <script src="https://js.tosspayments.com/v1/payment"></script>
-        <script>
-            var clientKey = "{toss_client_key}";
-            var tossPayments = TossPayments(clientKey);
-            
-            document.getElementById("payment-button").addEventListener("click", function () {{
-                tossPayments.requestPayment('카드', {{
-                    amount: 2000,
-                    orderId: '{order_id}',
-                    orderName: 'AI 시험지 생성기 월간 구독',
-                    customerName: '{st.session_state.username}',
-                    successUrl: window.location.origin + window.location.pathname + '?payment=success',
-                    failUrl: window.location.origin + window.location.pathname + '?payment=fail',
-                }}).catch(function (error) {{
-                    if (error.code === 'USER_CANCEL') {{
-                        alert('사용자가 결제를 취소했습니다.');
-                    }} else {{
-                        alert(error.message);
-                    }}
-                }});
-            }});
-        </script>
-        """
-        
-        st.components.v1.html(toss_html, height=140)
-        
-        # URL 쿼리 파라미터로 결제 성공/실패 감지 처리
-        query_params = st.query_params
-        if "payment" in query_params:
-            if query_params["payment"] == "success":
-                st.session_state.is_subscribed = True
-                st.success("결제가 성공적으로 완료되었습니다!")
-                time.sleep(1)
-                st.rerun()
-            elif query_params["payment"] == "fail":
-                st.error("결제가 실패하였거나 취소되었습니다.")
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("✅ [테스트용] 즉시 결제 완료 처리"):
+        if st.button("✅ 입금을 완료했습니다 (이용권 활성화)"):
             st.session_state.is_subscribed = True
             st.rerun()
             
         if st.button("로그아웃"):
             st.session_state.logged_in = False
             st.rerun()
+            
+        st.markdown("<p style='text-align: center; color: #64748B; font-size: 0.8rem; margin-top: 1.5rem;'>copyright: yejun</p>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-# 메인 앱 기능 (기존 코드 완벽 보존)
 else:
     st.markdown('<p class="main-title">📚 AI 전 과목 시험지 & 답안지 생성기</p>', unsafe_allow_html=True)
     st.markdown(f'<p class="sub-title">환영합니다, <b>{st.session_state.username}</b>님! 국어, 영어, 수학, 사회, 과학 등 모든 과목의 평가문항과 상세 해설지를 자동 생성합니다.</p>', unsafe_allow_html=True)
