@@ -10,12 +10,12 @@ import os
 import tempfile
 import time
 
-API_KEY = st.secrets["API_KEY"]
+
 MODEL_NAME = "google/gemini-2.5-flash"
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=st.secrets["API_KEY"],
+    api_key=st.secrets["OPENROUTER_API_KEY"],
 )
 
 st.set_page_config(
@@ -135,7 +135,7 @@ if "elapsed_time" not in st.session_state:
 
 subjects = ["국어", "영어", "수학", "사회", "역사", "과학", "도덕", "기타"]
 
-def build_pdf_two_column_vertical_order(items, filename, title_text, is_exam=True):
+def build_pdf_exam(items, filename, title_text):
     temp_dir = tempfile.mkdtemp()
     filepath = os.path.join(temp_dir, filename)
     
@@ -151,39 +151,40 @@ def build_pdf_two_column_vertical_order(items, filename, title_text, is_exam=Tru
     title_style = ParagraphStyle(
         'DocTitle',
         fontName=FONT_NAME,
-        fontSize=16,
-        leading=20,
+        fontSize=15,
+        leading=18,
         textColor=colors.black
     )
     
     content_style = ParagraphStyle(
         'ContentText',
         fontName=FONT_NAME,
-        fontSize=11 if is_exam else 10.5,
-        leading=16 if is_exam else 15,
+        fontSize=9.5,
+        leading=13.5,
         textColor=colors.black
     )
     
     story = []
     story.append(Paragraph(f"<b>{title_text}</b>", title_style))
-    story.append(Spacer(1, 12))
+    story.append(Spacer(1, 10))
     
-    def make_cell(item_text):
+    col_w = (A4[0] - 60 - 20) / 2
+    
+    def make_exam_cell(item_text):
         content_elements = []
         lines = item_text.strip().split('\n')
         for line in lines:
             if line.strip():
                 content_elements.append(Paragraph(f"<b>{line}</b>", content_style))
-                content_elements.append(Spacer(1, 3))
+                content_elements.append(Spacer(1, 2))
         
-        if is_exam:
-            content_elements.append(Spacer(1, 6))
-            content_elements.append(Paragraph("<b>(풀이)</b>", content_style))
-            content_elements.append(Spacer(1, 2))
-            for _ in range(7):
-                content_elements.append(Spacer(1, 14))
-            content_elements.append(Spacer(1, 4))
-            content_elements.append(Paragraph("<b>정답 : ________________________</b>", content_style))
+        content_elements.append(Spacer(1, 4))
+        content_elements.append(Paragraph("<b>(풀이)</b>", content_style))
+        content_elements.append(Spacer(1, 2))
+        for _ in range(4):
+            content_elements.append(Spacer(1, 10))
+        content_elements.append(Spacer(1, 4))
+        content_elements.append(Paragraph("<b>정답 : ________________________</b>", content_style))
         
         cell_table = Table([[content_elements]], colWidths=[col_w])
         cell_table.setStyle(TableStyle([
@@ -195,19 +196,13 @@ def build_pdf_two_column_vertical_order(items, filename, title_text, is_exam=Tru
         ]))
         return cell_table
 
-    col_w = (A4[0] - 60 - 20) / 2
-    total_items = len(items)
-    half_n = (total_items + 1) // 2
-    
-    left_items = items[:half_n]
-    right_items = items[half_n:]
-    
     table_data = []
-    max_len = max(len(left_items), len(right_items))
-    
-    for i in range(max_len):
-        left_cell = make_cell(left_items[i]) if i < len(left_items) else ''
-        right_cell = make_cell(right_items[i]) if i < len(right_items) else ''
+    for i in range(0, len(items), 2):
+        left_item = items[i]
+        right_item = items[i+1] if i+1 < len(items) else None
+        
+        left_cell = make_exam_cell(left_item)
+        right_cell = make_exam_cell(right_item) if right_item else ''
         
         table_data.append([left_cell, '', right_cell])
         table_data.append(['', '', ''])
@@ -218,7 +213,84 @@ def build_pdf_two_column_vertical_order(items, filename, title_text, is_exam=Tru
         ('LEFTPADDING', (0,0), (-1,-1), 0),
         ('RIGHTPADDING', (0,0), (-1,-1), 0),
         ('TOPPADDING', (0,0), (-1,-1), 0),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 12),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
+    ]))
+    
+    story.append(main_table)
+    doc.build(story)
+    return filepath
+
+def build_pdf_answer(items, filename, title_text):
+    temp_dir = tempfile.mkdtemp()
+    filepath = os.path.join(temp_dir, filename)
+    
+    doc = SimpleDocTemplate(
+        filepath,
+        pagesize=A4,
+        leftMargin=30,
+        rightMargin=30,
+        topMargin=35,
+        bottomMargin=35
+    )
+    
+    title_style = ParagraphStyle(
+        'DocTitle',
+        fontName=FONT_NAME,
+        fontSize=15,
+        leading=18,
+        textColor=colors.black
+    )
+    
+    content_style = ParagraphStyle(
+        'ContentText',
+        fontName=FONT_NAME,
+        fontSize=10,
+        leading=14,
+        textColor=colors.black
+    )
+    
+    story = []
+    story.append(Paragraph(f"<b>{title_text}</b>", title_style))
+    story.append(Spacer(1, 10))
+    
+    col_w = (A4[0] - 60 - 20) / 2
+    
+    def make_answer_cell(item_text):
+        content_elements = []
+        lines = item_text.strip().split('\n')
+        for line in lines:
+            if line.strip():
+                content_elements.append(Paragraph(f"<b>{line}</b>", content_style))
+                content_elements.append(Spacer(1, 2))
+        
+        cell_table = Table([[content_elements]], colWidths=[col_w])
+        cell_table.setStyle(TableStyle([
+            ('VALIGN', (0,0), (-1,-1), 'TOP'),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 0),
+            ('TOPPADDING', (0,0), (-1,-1), 0),
+            ('LEFTPADDING', (0,0), (-1,-1), 0),
+            ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ]))
+        return cell_table
+
+    table_data = []
+    for i in range(0, len(items), 2):
+        left_item = items[i]
+        right_item = items[i+1] if i+1 < len(items) else None
+        
+        left_cell = make_answer_cell(left_item)
+        right_cell = make_answer_cell(right_item) if right_item else ''
+        
+        table_data.append([left_cell, '', right_cell])
+        table_data.append(['', '', ''])
+        
+    main_table = Table(table_data, colWidths=[col_w, 20, col_w])
+    main_table.setStyle(TableStyle([
+        ('VALIGN', (0,0), (-1,-1), 'TOP'),
+        ('LEFTPADDING', (0,0), (-1,-1), 0),
+        ('RIGHTPADDING', (0,0), (-1,-1), 0),
+        ('TOPPADDING', (0,0), (-1,-1), 0),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 10),
     ]))
     
     story.append(main_table)
@@ -284,7 +356,7 @@ with col_main:
             sub_scope = st.text_input("🎯 상세 단원 및 주제", placeholder="예: 2. 물질의 구성, 조선 시대 경제")
             difficulty = st.selectbox("⚡ 난이도", ["하 (기본)", "중 (응용)", "상 (심화)", "심화 (최고난도 극상)"])
             
-        num_questions = st.number_input("📝 문제 수", min_value=1, value=4, step=1)
+        num_questions = st.number_input("📝 문제 수 (4의 배수로 설정하면 한 페이지에 4문제씩 딱 맞아떨어집니다)", min_value=1, value=4, step=1)
         
         st.markdown("<div style='margin-top: 1rem;'></div>", unsafe_allow_html=True)
         submitted = st.form_submit_button("✨ AI 맞춤 문제 및 답안 생성하기")
@@ -375,8 +447,8 @@ if submitted:
             questions = [q.strip() for q in exam_raw.split('\n\n') if q.strip()]
             answers = [a.strip() for a in answer_raw.split('\n\n') if a.strip()]
             
-            st.session_state.exam_pdf_path = build_pdf_two_column_vertical_order(questions, "exam.pdf", f"[{selected_subject}] {sub_scope} 평가문제지", is_exam=True)
-            st.session_state.answer_pdf_path = build_pdf_two_column_vertical_order(answers, "answer.pdf", f"[{selected_subject}] {sub_scope} 정답 및 해설지", is_exam=False)
+            st.session_state.exam_pdf_path = build_pdf_exam(questions, "exam.pdf", f"[{selected_subject}] {sub_scope} 평가문제지")
+            st.session_state.answer_pdf_path = build_pdf_answer(answers, "answer.pdf", f"[{selected_subject}] {sub_scope} 정답 및 해설지")
             st.session_state.generated = True
 
 if st.session_state.generated:
