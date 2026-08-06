@@ -206,11 +206,11 @@ elif not st.session_state.is_subscribed:
     with col2:
         st.markdown(f"""
             <div class="login-card">
-                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 프리미엄 이용 안내</h2>
+                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 이용 안내</h2>
                 <p style="color: #94A3B8; text-align: center; margin-bottom: 1.5rem;">환영합니다, <b>{st.session_state.username}</b>님!<br>양심적으로 1달 이용료 2,000원을 아래 계좌로 송금해주세요.</p>
                 <div style="background-color: #0F172A; padding: 15px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1.5rem;">
                     <p style="color: #38BDF8; font-weight: 700; font-size: 1.1rem; margin-bottom: 5px;">토스뱅크 1002-6694-4531</p>
-                    <p style="color: #94A3B8; font-size: 0.9rem;">예금주: yejun</p>
+                    <p style="color: #94A3B8; font-size: 0.9rem;">。、</p>
                 </div>
         """, unsafe_allow_html=True)
         
