@@ -51,7 +51,24 @@ st.markdown("""
         font-weight: 400;
         color: #94A3B8;
         text-align: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .warning-banner {
+        background-color: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.4);
+        padding: 1rem 1.25rem;
+        border-radius: 12px;
+        text-align: center;
         margin-bottom: 2.5rem;
+    }
+    
+    .warning-text {
+        color: #F87171 !important;
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0;
+        line-height: 1.5;
     }
     
     .stForm, .result-container, .timer-card {
@@ -117,6 +134,12 @@ except:
 
 st.markdown('<p class="main-title">📚 AI 전 과목 시험지 & 답안지 생성기</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-title">국어, 영어, 수학, 사회, 과학 등 모든 과목의 평가문항과 상세 해설지를 자동 생성합니다.</p>', unsafe_allow_html=True)
+
+st.markdown("""
+    <div class="warning-banner">
+        <p class="warning-text">🚨 공지사항: AI 사용료가 비싸 후원이 없으면 서비스가 중단될 수 있습니다!<br>유용하게 쓰셨다면 자발적인 이용료 후원을 부탁드립니다.</p>
+    </div>
+""", unsafe_allow_html=True)
 
 if "form_key" not in st.session_state:
     st.session_state.form_key = 0
@@ -428,7 +451,7 @@ col_foot1, col_foot2 = st.columns([2, 1])
 with col_foot1:
     st.markdown("<p style='color: #64748B; font-size: 0.85rem;'>copyright: yejun</p>", unsafe_allow_html=True)
 with col_foot2:
-    @st.dialog("한달사용료 지불하기 (2000dn원 (자율))")
+    @st.dialog("☕ 개발자에게 커피 사주기")
     def donate_dialog():
         st.markdown("""
             <p style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>서비스를 유용하게 쓰셨나요?<br>자발적인 후원은 더 좋은 기능을 만드는 데 큰 힘이 됩니다!</p>
