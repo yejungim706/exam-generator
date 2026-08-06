@@ -449,7 +449,7 @@ if st.session_state.generated:
 st.markdown("<br><hr style='border-color: #334155;'>", unsafe_allow_html=True)
 col_foot1, col_foot2 = st.columns([2, 1])
 with col_foot1:
-    st.markdown("<p style='color: #64748B; font-size: 0.85rem;'>copyright: yejun</p>", unsafe_allow_html=True)
+    st.markdown("<p style='color: #64748B; font-size: 0.85rem;'></p>", unsafe_allow_html=True)
 with col_foot2:
     @st.dialog("☕ 개발자에게 커피 사주기")
     def donate_dialog():
@@ -457,7 +457,6 @@ with col_foot2:
             <p style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>서비스를 유용하게 쓰셨나요?<br>자발적인 후원은 더 좋은 기능을 만드는 데 큰 힘이 됩니다!</p>
             <div style='background-color: #0F172A; padding: 20px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1rem;'>
                 <p style='color: #38BDF8; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px;'>토스뱅크 1002-6694-4531</p>
-                <p style='color: #94A3B8; font-size: 0.95rem;'>예금주: yejun</p>
             </div>
         """, unsafe_allow_html=True)
         if st.button("닫기", use_container_width=True):
