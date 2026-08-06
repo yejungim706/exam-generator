@@ -17,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-API_KEY = st.secrets["OPENROUTER_API_KEY"]
+API_KEY = st.secrets["API_KEY"]
 MODEL_NAME = "google/gemini-2.5-flash"
 
 client = OpenAI(
