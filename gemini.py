@@ -9,6 +9,7 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 import os
 import tempfile
 import time
+import uuid
 
 st.set_page_config(
     page_title="AI 전 과목 시험지 & 답안지 생성기",
@@ -36,6 +37,10 @@ if "username" not in st.session_state:
     st.session_state.username = ""
 if "auth_mode" not in st.session_state:
     st.session_state.auth_mode = "로그인"
+if "id_checked" not in st.session_state:
+    st.session_state.id_checked = False
+if "checked_id" not in st.session_state:
+    st.session_state.checked_id = ""
 
 st.markdown("""
 <style>
@@ -136,7 +141,6 @@ if not st.session_state.logged_in:
             <div class="login-card">
         """, unsafe_allow_html=True)
         
-        # 탭 전환 버튼 형태 구현
         tab_col1, tab_col2 = st.columns(2)
         with tab_col1:
             if st.button("🔑 로그인", use_container_width=True):
@@ -167,40 +171,99 @@ if not st.session_state.logged_in:
         else:
             st.markdown("<h3 style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>회원가입</h3>", unsafe_allow_html=True)
             signup_id = st.text_input("사용할 아이디", key="signup_id")
-            signup_pw = st.text_input("사용할 비밀번호", type="password", key="signup_pw")
+            
+            # 아이디 중복 확인 버튼 및 로직
+            if st.button("중복 확인", key="check_dup_btn"):
+                if not signup_id.strip():
+                    st.warning("아이디를 입력해주세요.")
+                elif signup_id in st.session_state.users_db:
+                    st.error("이미 사용 중인 아이디입니다.")
+                    st.session_state.id_checked = False
+                else:
+                    st.success("사용 가능한 아이디입니다!")
+                    st.session_state.id_checked = True
+                    st.session_state.checked_id = signup_id
+
+            signup_pw = st.text_input("비밀번호", type="password", key="signup_pw")
             signup_pw_confirm = st.text_input("비밀번호 확인", type="password", key="signup_pw_confirm")
             
             if st.button("가입 완료", key="signup_btn"):
                 if not signup_id.strip() or not signup_pw.strip():
                     st.warning("아이디와 비밀번호를 모두 입력해주세요.")
-                elif signup_id in st.session_state.users_db:
-                    st.error("이미 존재하는 아이디입니다.")
+                elif not st.session_state.id_checked or st.session_state.checked_id != signup_id:
+                    st.error("아이디 중복 확인을 진행해주세요.")
                 elif signup_pw != signup_pw_confirm:
                     st.error("비밀번호가 일치하지 않습니다.")
                 else:
                     st.session_state.users_db[signup_id] = signup_pw
-                    st.success("회원가입이 완료되었습니다! 로그인해주세요.")
+                    st.success("회원가입 완료! 로그인 페이지로 이동합니다.")
+                    st.session_state.id_checked = False
                     st.session_state.auth_mode = "로그인"
                     time.sleep(1)
                     st.rerun()
                     
         st.markdown("</div>", unsafe_allow_html=True)
 
-# 구독 결제 화면
+# 구독 결제 화면 (토스페이먼츠 연동 포함)
 elif not st.session_state.is_subscribed:
     st.markdown("<br><br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 1.5, 1])
+    col1, col2, col3 = st.columns([1, 1.8, 1])
     with col2:
         st.markdown(f"""
             <div class="login-card">
-                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 프리미엄 구독 필요</h2>
-                <p style="color: #94A3B8; text-align: center; margin-bottom: 1.5rem;">환영합니다, <b>{st.session_state.username}</b>님!<br>서비스를 이용하려면 월 2,000원 구독이 필요합니다.</p>
+                <h2 style="color: #F8FAFC; text-align: center; margin-bottom: 1rem;">💎 프리미엄 구독 결제</h2>
+                <p style="color: #94A3B8; text-align: center; margin-bottom: 1.5rem;">환영합니다, <b>{st.session_state.username}</b>님!<br>모든 기능을 무제한 이용하려면 월 2,000원 구독이 필요합니다.</p>
         """, unsafe_allow_html=True)
         
-        if st.button("💳 월 2,000원 결제하기 (토스페이먼츠 연동)"):
-            st.info("토스페이먼츠 결제창이 호출되는 영역입니다.")
+        # 토스페이먼츠 SDK 연동 HTML 컴포넌트 삽입
+        order_id = f"ORDER_{uuid.uuid4().hex[:10]}"
+        toss_client_key = st.secrets.get("TOSS_CLIENT_KEY", "test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq") # 테스트용 기본 키 제공
+        
+        toss_html = f"""
+        <div style="background-color: #0F172A; padding: 15px; border-radius: 10px; border: 1px solid #334155; text-align: center;">
+            <p style="color: #F8FAFC; font-weight: 600; margin-bottom: 10px;">토스페이먼츠 안전 결제 (월 2,000원)</p>
+            <button id="payment-button" style="background-color: #3182F6; color: white; border: none; padding: 12px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%;">토스로 결제하기</button>
+        </div>
+        
+        <script src="https://js.tosspayments.com/v1/payment"></script>
+        <script>
+            var clientKey = "{toss_client_key}";
+            var tossPayments = TossPayments(clientKey);
             
-        if st.button("✅ 결제 완료 확인 (테스트용)"):
+            document.getElementById("payment-button").addEventListener("click", function () {{
+                tossPayments.requestPayment('카드', {{
+                    amount: 2000,
+                    orderId: '{order_id}',
+                    orderName: 'AI 시험지 생성기 월간 구독',
+                    customerName: '{st.session_state.username}',
+                    successUrl: window.location.origin + window.location.pathname + '?payment=success',
+                    failUrl: window.location.origin + window.location.pathname + '?payment=fail',
+                }}).catch(function (error) {{
+                    if (error.code === 'USER_CANCEL') {{
+                        alert('사용자가 결제를 취소했습니다.');
+                    }} else {{
+                        alert(error.message);
+                    }}
+                }});
+            }});
+        </script>
+        """
+        
+        st.components.v1.html(toss_html, height=140)
+        
+        # URL 쿼리 파라미터로 결제 성공/실패 감지 처리
+        query_params = st.query_params
+        if "payment" in query_params:
+            if query_params["payment"] == "success":
+                st.session_state.is_subscribed = True
+                st.success("결제가 성공적으로 완료되었습니다!")
+                time.sleep(1)
+                st.rerun()
+            elif query_params["payment"] == "fail":
+                st.error("결제가 실패하였거나 취소되었습니다.")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        if st.button("✅ [테스트용] 즉시 결제 완료 처리"):
             st.session_state.is_subscribed = True
             st.rerun()
             
