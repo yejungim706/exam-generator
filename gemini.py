@@ -15,7 +15,7 @@ MODEL_NAME = "google/gemini-2.5-flash"
 
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
-    api_key=API_KEY,
+    api_key=st.secrets["OPENROUTER_API_KEY"],
 )
 
 st.set_page_config(
@@ -432,7 +432,7 @@ with col_foot2:
     def donate_dialog():
         st.markdown("""
             <p style='color: #F8FAFC; text-align: center; margin-bottom: 1.5rem;'>서비스를 유용하게 쓰셨나요?<br>자발적인 후원은 더 좋은 기능을 만드는 데 큰 힘이 됩니다!</p>
-            <div style='background-color: #0F172A; padding: 20px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1rem;'>
+            <div style='background-color: #0F172A; padding: 20px; border-radius: 10px; border: 1px solid #334155; text-align: center; margin-bottom: 1.0rem;'>
                 <p style='color: #38BDF8; font-weight: 700; font-size: 1.2rem; margin-bottom: 8px;'>토스뱅크 1002-6694-4531</p>
             </div>
         """, unsafe_allow_html=True)
